@@ -1,0 +1,34 @@
+<?xml version="1.0" standalone="no"?>
+<svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <!-- https://stackoverflow.com/a/25727098/184124 -->
+        <filter id="inner-shadow">
+            <!-- Shadow Blur -->
+            <feGaussianBlur stdDeviation="10" result="offset-blur"/>
+
+            <!-- Invert the drop shadow to create an inner shadow -->
+            <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+
+            <!-- Color & Opacity -->
+            <feFlood flood-color="black" flood-opacity="1.0" result="color"/>
+
+            <!-- Clip color inside shadow -->
+            <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+
+            <!-- Shadow Opacity -->
+            <feComponentTransfer in="shadow" result="shadow">
+                <feFuncA type="linear" slope="1"/>
+            </feComponentTransfer>
+
+            <!-- Put shadow over original object -->
+            <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+        </filter>
+    </defs>
+
+
+
+    <g filter="url(#inner-shadow)">
+        <polygon points="50,1 65,21 55,21 55,50 45,50 45,21 35,21" stroke="#000000" fill="#ffffff"/>
+    </g>
+</svg>
+
