@@ -10,7 +10,7 @@
             <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
 
             <!-- Color & Opacity -->
-            <feFlood flood-color="blue" flood-opacity="1.0" result="color"/>
+            <feFlood flood-color="#9999ff" flood-opacity="1.0" result="color"/>
 
             <!-- Clip color inside shadow -->
             <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
@@ -27,7 +27,7 @@
 
     <g filter="url(#inner-shadow)">
         <rect x="0" y="0" width="100" height="100" fill="#000000" />
-        <rect x="1" y="1" width="98" height="98" fill="#9080f0" />
+        <rect x="1" y="1" width="98" height="98" fill="#ccccff" />
     </g>
 </svg>
 

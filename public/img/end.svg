@@ -27,16 +27,16 @@
 
     <g filter="url(#inner-shadow)">
         <rect x="0" y="0" width="50" height="50" fill="#000000" />
-        <rect x="1" y="1" width="49" height="49" fill="#808090" />
+        <rect x="1" y="1" width="49" height="49" fill="#99ff99" />
 
         <rect x="50" y="0" width="50" height="50" fill="#000000" />
-        <rect x="51" y="1" width="49" height="49" fill="#ffffff" />
+        <rect x="51" y="1" width="49" height="49" fill="#ff9999" />
 
         <rect x="50" y="50" width="50" height="50" fill="#000000" />
-        <rect x="51" y="51" width="49" height="49" fill="#808090" />
+        <rect x="51" y="51" width="49" height="49" fill="#99ff99" />
 
         <rect x="0" y="50" width="50" height="50" fill="#000000" />
-        <rect x="1" y="51" width="49" height="49" fill="#ffffff" />
+        <rect x="1" y="51" width="49" height="49" fill="#ff9999" />
     </g>
 </svg>
 

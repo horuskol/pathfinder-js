@@ -15,12 +15,12 @@ import {onMounted, ref} from 'vue';
 
 const canvas = ref(null);
 
-const cellSize = ref(20);
-const height = ref(20);
-const width = ref(20);
+const cellSize = ref(15);
+const height = ref(50);
+const width = ref(50);
 
-const start = {x: 10, y: 10};
-const end = {x: 5, y: 5};
+const start = {x: Math.floor(Math.random() * width.value), y: Math.floor(Math.random() * height.value)};
+const end = {x: Math.floor(Math.random() * width.value), y: Math.floor(Math.random() * height.value)};
 const map = [];
 
 const images = ref({});
@@ -85,7 +85,7 @@ const initialiseMap = () => {
     map[x] = [];
 
     for (let y = 0; y < height.value; y++) {
-      map[x][y] = Math.floor(Math.random() * 100) < 90 ? states.EMPTY : states.WALL;
+      map[x][y] = Math.floor(Math.random() * 100) < 75 ? states.EMPTY : states.WALL;
 
       if (start.x === x && start.y === y) {
         map[x][y] = states.START;
@@ -110,6 +110,8 @@ const refresh = () => {
 
 const findPath = async () => {
   const frontier = [{x: start.x, y: start.y}];
+  const from = {};
+  from[`${start.x}-${start.y}`] = null;
 
   while (frontier.length > 0) {
     const current = frontier.pop();
@@ -117,6 +119,18 @@ const findPath = async () => {
     if (map[current.x][current.y] === states.NEXT) {
       map[current.x][current.y] = states.FRONTIER;
       drawCell(current.x, current.y, states.FRONTIER);
+      if (current.y > from[`${current.x}-${current.y}`].y) {
+        drawCell(current.x, current.y, directions.UP);
+      }
+      if (current.x > from[`${current.x}-${current.y}`].x) {
+        drawCell(current.x, current.y, directions.LEFT);
+      }
+      if (current.y < from[`${current.x}-${current.y}`].y) {
+        drawCell(current.x, current.y, directions.DOWN);
+      }
+      if (current.x < from[`${current.x}-${current.y}`].x) {
+        drawCell(current.x, current.y, directions.RIGHT);
+      }
 
       await sleep(10);
     }
@@ -129,6 +143,7 @@ const findPath = async () => {
       frontier.unshift(next);
 
       map[next.x][next.y] = states.NEXT;
+      from[`${next.x}-${next.y}`] = current;
       drawCell(next.x, next.y, states.NEXT);
 
       await sleep(10);
@@ -161,6 +176,11 @@ const getNeighbours = ({x, y}) => {
 }
 
 onMounted(async () => {
+  while (start.x === end.x && start.y === end.y) {
+    end.x = Math.floor(Math.random() * width.value);
+    end.y = Math.floor(Math.random() * height.value);
+  }
+
   images.value = {
     [states.END]: await loadImage('./img/end.svg', cellSize.value, cellSize.value),
     [states.EMPTY]: await loadImage('./img/empty.svg', cellSize.value, cellSize.value),
