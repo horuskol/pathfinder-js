@@ -4,7 +4,7 @@
         <!-- https://stackoverflow.com/a/25727098/184124 -->
         <filter id="inner-shadow">
             <!-- Shadow Blur -->
-            <feGaussianBlur stdDeviation="10" result="offset-blur"/>
+            <feGaussianBlur stdDeviation="25" result="offset-blur"/>
 
             <!-- Invert the drop shadow to create an inner shadow -->
             <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>

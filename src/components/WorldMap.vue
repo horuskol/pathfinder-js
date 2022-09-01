@@ -148,6 +148,10 @@ const findPath = async () => {
 
       await sleep(10);
     }
+
+    if (from[`${end.x}-${end.y}`]) {
+      break;
+    }
   }
 
   console.log('done');
