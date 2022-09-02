@@ -22,7 +22,7 @@ const width = ref(20);
 
 const start = ref({});
 const end = ref({});
-const map = [];
+const map = ref({});
 
 const images = ref({});
 
@@ -66,14 +66,14 @@ const drawCell = (x, y, cellState) => {
 
 const loadImage = async (url, height, width) => {
   return new Promise((resolve, reject) => {
-    let image = new Image();
+    const image = new Image();
 
     image.onload = () => {
-      let png = new Image();
-      let cnv = document.createElement('canvas');
+      const png = new Image();
+      const cnv = document.createElement('canvas');
       cnv.height = height;
       cnv.width = width;
-      let ctx = cnv.getContext('2d');
+      const ctx = cnv.getContext('2d');
 
       ctx.drawImage(image, 0, 0, height, width);
       png.src = cnv.toDataURL();
@@ -86,6 +86,8 @@ const loadImage = async (url, height, width) => {
 }
 
 const initialiseMap = () => {
+  map.value = {};
+
   start.value = new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value));
   end.value = new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value));
   while (start.value.equals(end.value)) {
@@ -96,26 +98,26 @@ const initialiseMap = () => {
     for (let y = 0; y < height.value; y++) {
       const point = new Point(x, y);
 
-      map[point.stringify()] = Math.floor(Math.random() * 100) < 75 ? mapStates.EMPTY : mapStates.WALL;
+      map.value[point.stringify()] = Math.floor(Math.random() * 100) < 75 ? mapStates.EMPTY : mapStates.WALL;
 
       if (start.value.equals(point)) {
-        map[point.stringify()] = states.START;
+        map.value[point.stringify()] = states.START;
       }
 
       if (end.value.equals(point)) {
-        map[point.stringify()] = states.END;
+        map.value[point.stringify()] = states.END;
       }
 
       const neighbours = point.getNeighbours();
-      if (map[point.stringify()] === mapStates.EMPTY)
+      if (map.value[point.stringify()] === mapStates.EMPTY)
       {
         if (Math.floor(Math.random() * 100) < 5) {
-          map[point.stringify()] = mapStates.WATER;
+          map.value[point.stringify()] = mapStates.WATER;
         }
 
-        if (neighbours.find((neighbour) => (map[neighbour.stringify()] === mapStates.WATER))
+        if (neighbours.find((neighbour) => (map.value[neighbour.stringify()] === mapStates.WATER))
             && Math.floor(Math.random() * 100) < 50) {
-          map[point.stringify()] = mapStates.WATER;
+          map.value[point.stringify()] = mapStates.WATER;
         }
       }
     }
@@ -128,22 +130,20 @@ const refresh = () => {
   for (let x = 0; x < width.value; x++) {
     for (let y = 0; y < height.value; y++) {
       const point = new Point(x, y);
-      drawCell(x, y, map[point.stringify()]);
+      drawCell(x, y, map.value[point.stringify()]);
     }
   }
 }
 
 const findPath = async () => {
-  const frontier = [new Point(start.value)];
   const from = {};
+  const frontier = [new Point(start.value)];
   from[start.value.stringify()] = null;
 
   while (frontier.length > 0) {
     const current = frontier.pop();
 
-    if (map[current.stringify()] === states.NEXT) {
-      map[current.stringify()] = states.FRONTIER;
-      drawCell(current.x, current.y, states.FRONTIER);
+    if (map.value[current.stringify()] === states.NEXT) {
       if (current.y > from[current.stringify()].y) {
         drawCell(current.x, current.y, directions.UP);
       }
@@ -157,7 +157,7 @@ const findPath = async () => {
         drawCell(current.x, current.y, directions.RIGHT);
       }
 
-      await sleep(100);
+      await sleep(50);
     }
 
     const neighbours = current.getNeighbours();
@@ -165,14 +165,15 @@ const findPath = async () => {
     while (neighbours.length > 0) {
       const next = neighbours.shift();
 
-      if (map[next.stringify()] && map[next.stringify()] === mapStates.EMPTY) {
+      if (map.value[next.stringify()]
+        && [mapStates.EMPTY, mapStates.WATER].includes(map.value[next.stringify()])
+      ) {
         frontier.unshift(next);
 
-        map[next.stringify()] = states.NEXT;
+        map.value[next.stringify()] = states.NEXT;
         from[next.stringify()] = current;
-        drawCell(next.x, next.y, states.NEXT);
 
-        await sleep(100);
+        await sleep(50);
       }
 
       if (next.equals(end.value)) {
