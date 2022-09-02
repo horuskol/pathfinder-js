@@ -17,11 +17,11 @@ import Point from '../lib/Point';
 const canvas = ref(null);
 
 const cellSize = ref(40);
-const height = ref(10);
-const width = ref(10);
+const height = ref(20);
+const width = ref(20);
 
-const start = ref(new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value)));
-const end = ref(new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value)));
+const start = ref({});
+const end = ref({});
 const map = [];
 
 const images = ref({});
@@ -82,6 +82,12 @@ const loadImage = async (url, height, width) => {
 }
 
 const initialiseMap = () => {
+  start.value = new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value));
+  end.value = new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value));
+  while (start.value.equals(end.value)) {
+    end.value = new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value));
+  }
+
   for (let x = 0; x < width.value; x++) {
     for (let y = 0; y < height.value; y++) {
       const point = new Point(x, y);
@@ -189,13 +195,13 @@ const findPath = async () => {
       await sleep(50);
     }
   }
+
+  await sleep(1000);
+  initialiseMap();
+  await findPath();
 }
 
 onMounted(async () => {
-  while (start.value.equals(end.value)) {
-    end.value = new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value));
-  }
-
   images.value = {
     [states.END]: await loadImage('./img/end.svg', cellSize.value, cellSize.value),
     [states.EMPTY]: await loadImage('./img/empty.svg', cellSize.value, cellSize.value),
