@@ -26,13 +26,16 @@ const map = [];
 
 const images = ref({});
 
+const mapStates = {
+  EMPTY: 'empty',
+  WALL: 'wall',
+}
+
 const states = {
   END: 'end',
-  EMPTY: 'empty',
   FRONTIER: 'frontier',
   NEXT: 'next',
   START: 'start',
-  WALL: 'wall',
 }
 
 const directions = {
@@ -92,7 +95,7 @@ const initialiseMap = () => {
     for (let y = 0; y < height.value; y++) {
       const point = new Point(x, y);
 
-      map[point.stringify()] = Math.floor(Math.random() * 100) < 75 ? states.EMPTY : states.WALL;
+      map[point.stringify()] = Math.floor(Math.random() * 100) < 75 ? mapStates.EMPTY : mapStates.WALL;
 
       if (start.value.equals(point)) {
         map[point.stringify()] = states.START;
@@ -148,7 +151,7 @@ const findPath = async () => {
     while (neighbours.length > 0) {
       const next = neighbours.shift();
 
-      if (map[next.stringify()] && map[next.stringify()] === states.EMPTY) {
+      if (map[next.stringify()] && map[next.stringify()] === mapStates.EMPTY) {
         frontier.unshift(next);
 
         map[next.stringify()] = states.NEXT;
@@ -203,12 +206,13 @@ const findPath = async () => {
 
 onMounted(async () => {
   images.value = {
+    [mapStates.EMPTY]: await loadImage('./img/map/empty.svg', cellSize.value, cellSize.value),
+    [mapStates.WALL]: await loadImage('./img/map/wall.svg', cellSize.value, cellSize.value),
+
     [states.END]: await loadImage('./img/end.svg', cellSize.value, cellSize.value),
-    [states.EMPTY]: await loadImage('./img/empty.svg', cellSize.value, cellSize.value),
     [states.FRONTIER]: await loadImage('./img/frontier.svg', cellSize.value, cellSize.value),
     [states.NEXT]: await loadImage('./img/next.svg', cellSize.value, cellSize.value),
     [states.START]: await loadImage('./img/start.svg', cellSize.value, cellSize.value),
-    [states.WALL]: await loadImage('./img/wall.svg', cellSize.value, cellSize.value),
 
     [directions.UP]: await loadImage('./img/arrows/up.svg', cellSize.value, cellSize.value),
     [directions.RIGHT]: await loadImage('./img/arrows/right.svg', cellSize.value, cellSize.value),
