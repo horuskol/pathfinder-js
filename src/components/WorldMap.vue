@@ -29,6 +29,7 @@ const images = ref({});
 const mapStates = {
   EMPTY: 'empty',
   WALL: 'wall',
+  WATER: 'water',
 }
 
 const states = {
@@ -104,6 +105,19 @@ const initialiseMap = () => {
       if (end.value.equals(point)) {
         map[point.stringify()] = states.END;
       }
+
+      const neighbours = point.getNeighbours();
+      if (map[point.stringify()] === mapStates.EMPTY)
+      {
+        if (Math.floor(Math.random() * 100) < 5) {
+          map[point.stringify()] = mapStates.WATER;
+        }
+
+        if (neighbours.find((neighbour) => (map[neighbour.stringify()] === mapStates.WATER))
+            && Math.floor(Math.random() * 100) < 50) {
+          map[point.stringify()] = mapStates.WATER;
+        }
+      }
     }
   }
 
@@ -143,7 +157,7 @@ const findPath = async () => {
         drawCell(current.x, current.y, directions.RIGHT);
       }
 
-      await sleep(10);
+      await sleep(100);
     }
 
     const neighbours = current.getNeighbours();
@@ -158,7 +172,7 @@ const findPath = async () => {
         from[next.stringify()] = current;
         drawCell(next.x, next.y, states.NEXT);
 
-        await sleep(10);
+        await sleep(100);
       }
 
       if (next.equals(end.value)) {
@@ -208,6 +222,7 @@ onMounted(async () => {
   images.value = {
     [mapStates.EMPTY]: await loadImage('./img/map/empty.svg', cellSize.value, cellSize.value),
     [mapStates.WALL]: await loadImage('./img/map/wall.svg', cellSize.value, cellSize.value),
+    [mapStates.WATER]: await loadImage('./img/map/water.svg', cellSize.value, cellSize.value),
 
     [states.END]: await loadImage('./img/end.svg', cellSize.value, cellSize.value),
     [states.FRONTIER]: await loadImage('./img/frontier.svg', cellSize.value, cellSize.value),
