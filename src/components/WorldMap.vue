@@ -12,6 +12,7 @@
 
 <script setup>
 import {onMounted, nextTick, ref} from 'vue';
+import Point from '../lib/Point';
 
 const canvas = ref(null);
 
@@ -19,8 +20,8 @@ const cellSize = ref(40);
 const height = ref(10);
 const width = ref(10);
 
-const start = {x: Math.floor(Math.random() * width.value), y: Math.floor(Math.random() * height.value)};
-const end = {x: Math.floor(Math.random() * width.value), y: Math.floor(Math.random() * height.value)};
+const start = ref(new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value)));
+const end = ref(new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value)));
 const map = [];
 
 const images = ref({});
@@ -82,17 +83,17 @@ const loadImage = async (url, height, width) => {
 
 const initialiseMap = () => {
   for (let x = 0; x < width.value; x++) {
-    map[x] = [];
-
     for (let y = 0; y < height.value; y++) {
-      map[x][y] = Math.floor(Math.random() * 100) < 75 ? states.EMPTY : states.WALL;
+      const point = new Point(x, y);
 
-      if (start.x === x && start.y === y) {
-        map[x][y] = states.START;
+      map[point.stringify()] = Math.floor(Math.random() * 100) < 75 ? states.EMPTY : states.WALL;
+
+      if (start.value.equals(point)) {
+        map[point.stringify()] = states.START;
       }
 
-      if (end.x === x && end.y === y) {
-        map[x][y] = states.END;
+      if (end.value.equals(point)) {
+        map[point.stringify()] = states.END;
       }
     }
   }
@@ -103,90 +104,84 @@ const initialiseMap = () => {
 const refresh = () => {
   for (let x = 0; x < width.value; x++) {
     for (let y = 0; y < height.value; y++) {
-      drawCell(x, y, map[x][y]);
+      const point = new Point(x, y);
+      drawCell(x, y, map[point.stringify()]);
     }
   }
 }
 
 const findPath = async () => {
-  const frontier = [{x: start.x, y: start.y}];
+  const frontier = [new Point(start.value)];
   const from = {};
-  from[`${start.x}-${start.y}`] = null;
+  from[start.value.stringify()] = null;
 
   while (frontier.length > 0) {
     const current = frontier.pop();
 
-    if (map[current.x][current.y] === states.NEXT) {
-      map[current.x][current.y] = states.FRONTIER;
+    if (map[current.stringify()] === states.NEXT) {
+      map[current.stringify()] = states.FRONTIER;
       drawCell(current.x, current.y, states.FRONTIER);
-      if (current.y > from[`${current.x}-${current.y}`].y) {
+      if (current.y > from[current.stringify()].y) {
         drawCell(current.x, current.y, directions.UP);
       }
-      if (current.x > from[`${current.x}-${current.y}`].x) {
+      if (current.x > from[current.stringify()].x) {
         drawCell(current.x, current.y, directions.LEFT);
       }
-      if (current.y < from[`${current.x}-${current.y}`].y) {
+      if (current.y < from[current.stringify()].y) {
         drawCell(current.x, current.y, directions.DOWN);
       }
-      if (current.x < from[`${current.x}-${current.y}`].x) {
+      if (current.x < from[current.stringify()].x) {
         drawCell(current.x, current.y, directions.RIGHT);
       }
 
       await sleep(10);
     }
 
-    const neighbours = getNeighbours(current);
+    const neighbours = current.getNeighbours();
 
     while (neighbours.length > 0) {
       const next = neighbours.shift();
 
-      if (map[next.x][next.y] === states.EMPTY) {
+      if (map[next.stringify()] && map[next.stringify()] === states.EMPTY) {
         frontier.unshift(next);
 
-        map[next.x][next.y] = states.NEXT;
-        from[`${next.x}-${next.y}`] = current;
+        map[next.stringify()] = states.NEXT;
+        from[next.stringify()] = current;
         drawCell(next.x, next.y, states.NEXT);
 
         await sleep(10);
       }
 
-      if (next.x === end.x && next.y === end.y) {
-        from[`${next.x}-${next.y}`] = current;
+      if (next.equals(end.value)) {
+        from[next.stringify()] = current;
       }
     }
 
-    if (from[`${end.x}-${end.y}`]) {
+    if (from[end.value.stringify()]) {
       break;
     }
   }
 
-  if (from[`${end.x}-${end.y}`]) {
-    if (end.y > from[`${end.x}-${end.y}`].y) {
+  if (from[end.value.stringify()]) {
+    if (end.y > from[end.value.stringify()].y) {
       drawCell(end.x, end.y, directions.UP);
     }
-    if (end.x > from[`${end.x}-${end.y}`].x) {
+    if (end.x > from[end.value.stringify()].x) {
       drawCell(end.x, end.y, directions.LEFT);
     }
-    if (end.y < from[`${end.x}-${end.y}`].y) {
+    if (end.y < from[end.value.stringify()].y) {
       drawCell(end.x, end.y, directions.DOWN);
     }
-    if (end.x < from[`${end.x}-${end.y}`].x) {
+    if (end.x < from[end.value.stringify()].x) {
       drawCell(end.x, end.y, directions.RIGHT);
     }
-
     const path = [];
-    let current = {x: end.x, y: end.y};
+    let current = new Point(end.value);
     do {
-      path.push({
-        x: current.x,
-        y: current.y,
-      });
+      path.push(new Point(current));
 
-      current = {
-        x: from[`${current.x}-${current.y}`].x,
-        y: from[`${current.x}-${current.y}`].y
-      };
-    } while (from[`${current.x}-${current.y}`]);
+      current = new Point(from[current.stringify()]);
+    } while (from[current.stringify()]);
 
     while (path.length > 0) {
       const move = path.pop();
@@ -196,32 +191,9 @@ const findPath = async () => {
   }
 }
 
-const getNeighbours = ({x, y}) => {
-  let neighbours = [];
-
-  if (y > 0) {
-    neighbours.push({x, y: y - 1});
-  }
-
-  if (x < width.value - 1) {
-    neighbours.push({x: x + 1, y});
-  }
-
-  if (y < height.value - 1) {
-    neighbours.push({x, y: y + 1});
-  }
-
-  if (x > 0) {
-    neighbours.push({x: x - 1, y});
-  }
-
-  return neighbours;
-}
-
 onMounted(async () => {
-  while (start.x === end.x && start.y === end.y) {
-    end.x = Math.floor(Math.random() * width.value);
-    end.y = Math.floor(Math.random() * height.value);
+  while (start.value.equals(end.value)) {
+    end.value = new Point(Math.floor(Math.random() * width.value), Math.floor(Math.random() * height.value));
   }
 
   images.value = {
