@@ -13,6 +13,7 @@
 <script setup>
 import {onMounted, nextTick, ref} from 'vue';
 import Point from '../lib/Point';
+import PriorityQueue from '../lib/PriorityQueue';
 
 const canvas = ref(null);
 
@@ -25,6 +26,16 @@ const end = ref({});
 const map = ref({});
 
 const images = ref({});
+
+const delays = {
+  SEARCH: 10,
+  ROUND: 1000
+}
+
+const costs = {
+  EMPTY: 2,
+  WATER: 10
+}
 
 const mapStates = {
   EMPTY: 'empty',
@@ -137,11 +148,16 @@ const refresh = () => {
 
 const findPath = async () => {
   const from = {};
-  const frontier = [new Point(start.value)];
+  const cost = {};
+  const frontier = new PriorityQueue();
+
+  frontier.put(new Point(start.value));
+
   from[start.value.stringify()] = null;
+  cost[start.value.stringify()] = 0;
 
   while (frontier.length > 0) {
-    const current = frontier.pop();
+    const current = frontier.get();
 
     if (map.value[current.stringify()] === states.NEXT) {
       if (current.y > from[current.stringify()].y) {
@@ -157,7 +173,7 @@ const findPath = async () => {
         drawCell(current.x, current.y, directions.RIGHT);
       }
 
-      await sleep(50);
+      await sleep(delays.SEARCH);
     }
 
     const neighbours = current.getNeighbours();
@@ -165,15 +181,18 @@ const findPath = async () => {
     while (neighbours.length > 0) {
       const next = neighbours.shift();
 
+      const newCost = cost[current.stringify()] + (map.value[next.stringify()] === mapStates.WATER ? costs.WATER : costs.EMPTY);
+
       if (map.value[next.stringify()]
         && [mapStates.EMPTY, mapStates.WATER].includes(map.value[next.stringify()])
       ) {
-        frontier.unshift(next);
+        frontier.put(next, newCost);
 
         map.value[next.stringify()] = states.NEXT;
         from[next.stringify()] = current;
+        cost[next.stringify()] = newCost;
 
-        await sleep(50);
+        await sleep(delays.SEARCH);
       }
 
       if (next.equals(end.value)) {
@@ -210,11 +229,11 @@ const findPath = async () => {
     while (path.length > 0) {
       const move = path.pop();
       drawCell(move.x, move.y, states.START);
-      await sleep(50);
+      await sleep(delays.SEARCH);
     }
   }
 
-  await sleep(1000);
+  await sleep(delays.ROUND);
   initialiseMap();
   await findPath();
 }
