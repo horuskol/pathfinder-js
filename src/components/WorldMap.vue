@@ -17,9 +17,9 @@ import PriorityQueue from '../lib/PriorityQueue';
 
 const canvas = ref(null);
 
-const cellSize = ref(40);
-const height = ref(20);
-const width = ref(20);
+const cellSize = ref(20);
+const height = ref(40);
+const width = ref(40);
 
 const start = ref({});
 const end = ref({});
@@ -186,7 +186,7 @@ const findPath = async () => {
       if (map.value[next.stringify()]
         && [mapStates.EMPTY, mapStates.WATER].includes(map.value[next.stringify()])
       ) {
-        frontier.put(next, newCost);
+        frontier.put(next, newCost + heuristic(end, next));
 
         map.value[next.stringify()] = states.NEXT;
         from[next.stringify()] = current;
@@ -236,6 +236,10 @@ const findPath = async () => {
   await sleep(delays.ROUND);
   initialiseMap();
   await findPath();
+}
+
+const heuristic = (a,b) => {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
 
 onMounted(async () => {
